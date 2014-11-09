@@ -1,12 +1,24 @@
-rm(list=ls())
-#reading data
-cons<- read.table("household_power_consumption.txt", sep=";",nrows= 2075260, header=TRUE, quote= "", strip.white=TRUE, stringsAsFactors = FALSE, na.strings= "?")
-# Subsetting the full data to obtain the data related to two days
-sub<- subset(cons, (cons$Date == "1/2/2007" | cons$Date== "2/2/2007"))
-# Changing the class of Date variable from character to Date
-sub$Date <- as.Date(sub$Date, format = "%d/%m/%Y")
-# Combining the Date and Time variable and creating a new column in dataset named "DateTime"
-sub$DateTime <- as.POSIXct(paste(sub$Date, sub$Time))
-# Creating the plot
-png("plot2.png", width = 480, height = 480)plot(sub$DateTime, sub$Global_active_power, type="l", ylab= "Global Active Power(kilowatts)", xlab="")
+# Change working directory
+setwd("EDA/Projects/Project1/dataCodes")
+
+# Url at which the data set is located
+fileUrl <- "https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip"
+# Download zip file
+download.file(fileUrl, destfile="household_power_consumption.zip", method="curl")
+# Read data set after unzipping the data file
+powerConsumption <- read.table(unz("household_power_consumption.zip", "household_power_consumption.txt"),
+                               header=T, sep=";")
+
+# Household power consumption for Feb. 1 and 2, 2007 only
+powerConsumption2 <- powerConsumption[as.character(powerConsumption$Date) %in% c("1/2/2007", "2/2/2007"),]
+# Concatante Date and Time variables
+powerConsumption2$dateTime = paste(powerConsumption2$Date, powerConsumption2$Time)
+
+# Convert to Date/Time class
+powerConsumption2$dateTime <- strptime(powerConsumption2$dateTime, "%d/%m/%Y %H:%M:%S")
+attach(powerConsumption2)
+
+png("plot2.png", width=480, height=480, units="px")
+# Plot of Global active power minute by minute
+plot(dateTime, as.numeric(as.character(Global_active_power)), type="l", xlab="", ylab="Global Active Power (kilowatts)")
 dev.off()
