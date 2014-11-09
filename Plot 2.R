@@ -1,24 +1,24 @@
-# Change working directory
-setwd("EDA/Projects/Project1/dataCodes")
+library(data.table)
 
-# Url at which the data set is located
-fileUrl <- "https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip"
-# Download zip file
-download.file(fileUrl, destfile="household_power_consumption.zip", method="curl")
-# Read data set after unzipping the data file
-powerConsumption <- read.table(unz("household_power_consumption.zip", "household_power_consumption.txt"),
-                               header=T, sep=";")
+# Read the original data
+DT <- read.table("household_power_consumption.txt", header = TRUE, sep = ";", na.strings = "?")
 
-# Household power consumption for Feb. 1 and 2, 2007 only
-powerConsumption2 <- powerConsumption[as.character(powerConsumption$Date) %in% c("1/2/2007", "2/2/2007"),]
-# Concatante Date and Time variables
-powerConsumption2$dateTime = paste(powerConsumption2$Date, powerConsumption2$Time)
+# Convert the date
+DT$Date <- as.Date(DT$Date, format  = "%d/%m/%Y")
 
-# Convert to Date/Time class
-powerConsumption2$dateTime <- strptime(powerConsumption2$dateTime, "%d/%m/%Y %H:%M:%S")
-attach(powerConsumption2)
+# Subsetting by the date
+data <- subset(DT, Date >= as.Date("2007-2-1") & Date <= "2007-2-2")
+data$Global_active_power <- as.numeric(data$Global_active_power)
 
-png("plot2.png", width=480, height=480, units="px")
-# Plot of Global active power minute by minute
-plot(dateTime, as.numeric(as.character(Global_active_power)), type="l", xlab="", ylab="Global Active Power (kilowatts)")
+rm(DT)
+
+# Convert the time & date into weekday
+data$Datetime <- as.POSIXct(paste(data$Date, data$Time))
+
+# Plotting
+plot(data$Global_active_power~data$Datetime, xlab = "", ylab = "Global Active Power (kilowatts)", type = "l")
+
+# Save to png file
+dev.copy(png, file = "plot2.png", height = 480, width = 480)
+
 dev.off()
